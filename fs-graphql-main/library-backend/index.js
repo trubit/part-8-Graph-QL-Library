@@ -1,5 +1,5 @@
-const { ApolloServer } = require("@apollo/server")
-const { startStandaloneServer } = require("@apollo/server/standalone")
+const { ApolloServer } = require("@apollo/server");
+const { startStandaloneServer } = require("@apollo/server/standalone");
 
 let authors = [
   {
@@ -25,7 +25,7 @@ let authors = [
     name: "Sandi Metz", // birthyear not known
     id: "afa5b6f3-344d-11e9-a414-719c6709cf3e",
   },
-]
+];
 
 /*
  * Suomi:
@@ -91,31 +91,46 @@ let books = [
     id: "afa5de04-344d-11e9-a414-719c6709cf3e",
     genres: ["classic", "revolution"],
   },
-]
+];
 
 /*
   you can remove the placeholder query once your first one has been implemented 
 */
 
 const typeDefs = `
-  type Query {
-    dummy: Int
+  type Book {
+    title: String!
+    published: Int!
+    author: String!
+    id: String!
+    genres: [String!]! 
   }
-`
+  type Author {
+    name: String!
+    id: ID!
+    born: Int
+    bookCount: Int!
+  }
+  type Query {
+    bookCount: Int!
+    authorCount: Int!
+  }
+`;
 
 const resolvers = {
   Query: {
-    dummy: () => 0,
+    bookCount: () => books.length,
+    authorCount: () => authors.length,
   },
-}
+};
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-})
+});
 
 startStandaloneServer(server, {
   listen: { port: 4000 },
 }).then(({ url }) => {
-  console.log(`Server ready at ${url}`)
-})
+  console.log(`Server ready at ${url}`);
+});
