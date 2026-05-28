@@ -115,6 +115,7 @@ const typeDefs = `
     bookCount: Int!
     authorCount: Int!
     allBooks: [Book!]!
+    allAuthors: [Author!]!
   }
 `;
 
@@ -123,6 +124,15 @@ const resolvers = {
     bookCount: () => books.length,
     authorCount: () => authors.length,
     allBooks: () => books,
+
+    allAuthors: () => {
+      return authors.map((author) => {
+        const bookCount = books.filter(
+          (book) => book.author === author.name,
+        ).length;
+        return { ...author, bookCount };
+      });
+    },
   },
 };
 
