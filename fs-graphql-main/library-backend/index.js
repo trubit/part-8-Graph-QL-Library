@@ -113,6 +113,14 @@ const typeDefs = `
     allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
   }
+    type Mutation {
+    addBook(
+      title: String!
+      author: String!
+      published: Int!
+      genres: [String!]!
+    ): Book!
+  }
 `;
 
 const resolvers = {
@@ -144,6 +152,25 @@ const resolvers = {
         ).length;
         return { ...author, bookCount };
       });
+    },
+  },
+  Mutation: {
+    addBook: (root, args) => {
+      const book = { ...args, id: Math.random().toString(36).slice(2) };
+      books = books.concat(book);
+
+      const authorExists = authors.find(
+        (author) => author.name === args.author,
+      );
+      if (!authorExists) {
+        const author = {
+          name: args.author,
+          id: Math.random().toString(36).slice(2),
+          born: null,
+        };
+        authors = authors.concat(author);
+      }
+      return book;
     },
   },
 };
