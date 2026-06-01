@@ -25,15 +25,19 @@ const Authors = ({ show }) => {
   if (result.error) {
     return <div>error loading authors</div>;
   }
+
+  const authors = result.data?.allAuthors ?? [];
+  const selectedName = name || authors[0]?.name || "";
+
   const submit = async (event) => {
     event.preventDefault();
 
-    if (!name || !born) return;
+    if (!selectedName || !born) return;
 
     await editAuthor({
       variables: {
-        name,
-        setBornTo: parseInt(born),
+        name: selectedName,
+        setBornTo: parseInt(born, 10),
       },
     });
 
@@ -50,7 +54,7 @@ const Authors = ({ show }) => {
             <th>born</th>
             <th>books</th>
           </tr>
-          {result.data?.allAuthors.map((a) => (
+          {authors.map((a) => (
             <tr key={a.name}>
               <td>{a.name}</td>
               <td>{a.born}</td>
@@ -63,10 +67,16 @@ const Authors = ({ show }) => {
       <form onSubmit={submit}>
         <div>
           <label>name</label>
-          <input
-            value={name}
+          <select
+            value={selectedName}
             onChange={({ target }) => setName(target.value)}
-          />
+          >
+            {authors.map((author) => (
+              <option key={author.name} value={author.name}>
+                {author.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label>born</label>
