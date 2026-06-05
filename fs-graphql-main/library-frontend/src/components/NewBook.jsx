@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
-import { CREATE_BOOK, ALL_AUTHORS, ALL_BOOKS } from "../queries";
+import { CREATE_BOOK, ALL_AUTHORS, ALL_BOOKS, BOOKS_BY_GENRE } from "../queries";
 
 const NewBook = ({ show }) => {
   const [title, setTitle] = useState("");
@@ -10,7 +10,12 @@ const NewBook = ({ show }) => {
   const [genres, setGenres] = useState([]);
 
   const [createBook] = useMutation(CREATE_BOOK, {
-    refetchQueries: [{ query: ALL_BOOKS }, { query: ALL_AUTHORS }],
+    refetchQueries: [
+      { query: ALL_BOOKS },
+      { query: BOOKS_BY_GENRE, variables: { genre: null } },
+      { query: ALL_AUTHORS },
+    ],
+    awaitRefetchQueries: true,
     onError: (error) => {
       console.error("Error creating book:", error);
     },
@@ -51,30 +56,34 @@ const NewBook = ({ show }) => {
       <h2>Add new book</h2>
       <form onSubmit={submit}>
         <div>
-          <label>title</label>
+          <label htmlFor="title">title</label>
           <input
+            id="title"
             value={title}
             onChange={({ target }) => setTitle(target.value)}
           />
         </div>
         <div>
-          <label>author</label>
+          <label htmlFor="author">author</label>
           <input
+            id="author"
             value={author}
             onChange={({ target }) => setAuthor(target.value)}
           />
         </div>
         <div>
-          <label>published</label>
+          <label htmlFor="published">published</label>
           <input
+            id="published"
             type="number"
             value={published}
             onChange={({ target }) => setPublished(target.value)}
           />
         </div>
         <div>
-          <label>genre</label>
+          <label htmlFor="genre">genre</label>
           <input
+            id="genre"
             value={genre}
             onChange={({ target }) => setGenre(target.value)}
           />
