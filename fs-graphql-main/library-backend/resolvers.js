@@ -1,8 +1,12 @@
 const { GraphQLError } = require("graphql");
+const { PubSub } = require("graphql-subscriptions");
 const Author = require("./models/author");
 const Book = require("./models/book");
 const User = require("./models/user");
 const jwt = require("jsonwebtoken");
+
+const pubsub = new PubSub();
+const BOOK_ADDED = "BOOK_ADDED";
 
 const getJwtSecret = () => process.env.JWT_SECRET || process.env.SECRET;
 
@@ -46,7 +50,27 @@ const resolvers = {
       return Book.find(query).populate("author");
     },
 
-    allAuthors: async () => Author.find({}),
+    allAuthors: async () => {
+      const authors = await Author.find({}).lean();
+      const bookCounts = await Book.aggregate([
+        {
+          $group: {
+            _id: "$author",
+            bookCount: { $sum: 1 },
+          },
+        },
+      ]);
+
+      const bookCountByAuthorId = new Map(
+        bookCounts.map(({ _id, bookCount }) => [_id.toString(), bookCount]),
+      );
+
+      return authors.map((author) => ({
+        ...author,
+        id: author._id.toString(),
+        bookCount: bookCountByAuthorId.get(author._id.toString()) || 0,
+      }));
+    },
 
     me: async (root, args, context) => {
       if (!context.currentUser) {
@@ -58,7 +82,13 @@ const resolvers = {
   },
 
   Author: {
-    bookCount: async (root) => Book.countDocuments({ author: root._id }),
+    bookCount: async (root) => {
+      if (typeof root.bookCount === "number") {
+        return root.bookCount;
+      }
+
+      return Book.countDocuments({ author: root._id });
+    },
   },
 
   Mutation: {
@@ -82,7 +112,11 @@ const resolvers = {
 
       try {
         await book.save();
-        return book.populate("author");
+        const savedBook = await book.populate("author");
+
+        pubsub.publish(BOOK_ADDED, { bookAdded: savedBook });
+
+        return savedBook;
       } catch (error) {
         throw userInputError(error.message, args.title);
       }
@@ -145,6 +179,12 @@ const resolvers = {
       await User.deleteMany({});
 
       return true;
+    },
+  },
+
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterableIterator(BOOK_ADDED),
     },
   },
 };

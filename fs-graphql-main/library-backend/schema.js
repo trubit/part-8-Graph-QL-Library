@@ -37,20 +37,28 @@ const typeDefs = `
       published: Int!
       genres: [String!]!
     ): Book!
+
     editAuthor(
       name: String!
       setBornTo: Int!
     ): Author
+
     createUser(
       username: String!
       favoriteGenre: String!
     ): User
+
     login(
       username: String!
       password: String!
     ): Token
+
     _resetDatabase: Boolean
 
+  }
+
+  type Subscription {
+    bookAdded: Book!
   }
 `;
 module.exports = typeDefs;
