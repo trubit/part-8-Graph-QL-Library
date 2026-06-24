@@ -1,0 +1,30 @@
+name: Test library-backend
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install library-backend dependencies
+        working-directory: fs-graphql-main/library-backend
+        run: npm ci
+
+      - name: Install test dependencies
+        working-directory: fs-graphql-main/tests-chapter4
+        run: npm ci
+
+      - name: Run tests
+        working-directory: fs-graphql-main/tests-chapter4
+        run: npm test
